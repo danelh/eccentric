@@ -10,7 +10,7 @@ class MomentInEccentric():
         self.time = time
         self.mean_longtitude = mean_longtitude
         self.center_angle = center_angle
-        self.planet_angle = planet_angle
+        self.longtitude = planet_angle
         self.distance = distance
 
 class Eccentric():
@@ -27,11 +27,11 @@ class Eccentric():
     def get_moment(self, time):
         time_diff = time - self.aphelion_time
         time_in_orb = time_diff.total_seconds() % self.orbit_time
-        mean_longtitude = 360.0 * time_in_orb / self.orbit_time
+        mean_longtitude = self.aphelion + 360.0 * time_in_orb / self.orbit_time
         fixed_mean_longtitude = self.fix_angle_precession(time, mean_longtitude)
         center_angle, planet_angle, distance =self.get_apparent_angle_by_mean_longtitude(fixed_mean_longtitude,
                                                    self.fix_angle_precession(time, self.fix_aphelion(time)))
-        MomentInEccentric()
+        return MomentInEccentric(time, fixed_mean_longtitude, center_angle, planet_angle, distance)
 
     def get_apparent_angle_by_mean_longtitude(self, mean_longtitude, current_aphelion):
         angle_from_aphelion = math.radians(mean_longtitude - current_aphelion)
@@ -40,11 +40,14 @@ class Eccentric():
         # if aequant eccentricity = 0 than the planet angle is 0 - which is good
 
         #triangle Sun-Center-planet
-        center_angle = planet_angle + angle_from_aphelion # external_angle
+        center_angle = planet_angle + (math.radians(180)-angle_from_aphelion) # external_angle
         sun_distance = math.sqrt(RADIUS**2+self.eccentricity**2
-                                 -2*RADIUS*self.eccentricity*math.acos(center_angle))
+                                 -2*RADIUS*self.eccentricity*math.cos(center_angle))
         apparent_angle = math.asin(math.sin(center_angle)*RADIUS/sun_distance)
 
+        # the real center angle should be 180 - center angle of the tirangle (planet-center_earth)
+        # beacue real center angle is aphelion-center-planet
+        center_angle = math.radians(180)-center_angle
         center_angle = (math.degrees(center_angle) + current_aphelion) % 360
         apparent_angle = (math.degrees(apparent_angle) + current_aphelion) % 360
 
@@ -53,17 +56,10 @@ class Eccentric():
     def mean_longtitude_by_apparent_angle(self):
         pass
 
-    def get_sun_planet_distance(self, time):
-        moment = self.get_moment(time)
-        print (moment.mean_longtitude)
-        # triangle Sun-Center-Planet:
-        # data: Sun-center (=eccentricity); center-planet = 1;
-        # angle_from_sun - given in moment
-
     def fix_angle_by_seconds_a_year(self, new_date, angle, seconds_fix):
         time_diff = (new_date - self.aphelion_time).total_seconds()
-        years_diff =  time_diff / SECONDS_IN_DAY*365.25
-        angle += years_diff * (PRESSESSION_SECONDS_A_YEAR / 3600.0)
+        years_diff = time_diff / (SECONDS_IN_DAY*365.25)
+        angle += years_diff * (seconds_fix / 3600.0)
         angle = angle % 360
         return angle
 

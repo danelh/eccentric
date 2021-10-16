@@ -14,4 +14,6 @@ earth_aphelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=5)
 aphelion_date = datetime(year=1590, month=6, day=15)
 earth = Eccentric(eccentricity=3584, aequant_eccentricity=0, aphelion=earth_aphelion,
                   apehlion_time=aphelion_date, orbit_time=365.25)
-earth.get_sun_planet_distance(datetime(year=1590, month=1, day=30))
+m = earth.get_moment(datetime(year=1585, month=1, day=30))
+# m = earth.get_moment(datetime(year=1593, month=8, day=25))
+print (m.distance, m.longtitude, m.mean_longtitude)
