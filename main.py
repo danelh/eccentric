@@ -100,6 +100,8 @@ observations_times = [datetime(year=1585, month=1, day=30, hour=19, minute=14),
 def shrink_mars_eccentricity(new_eccentricity_ratio):
     # we want quator a "year" in 10 peaces
     kepler_example_time = datetime(year=1582, month=12, day=28, hour=3, minute=58)
+    # kepler_example_time = datetime(year=1593, month=8, day=25, hour=17, minute=27)
+    # kepler_example_time = datetime(year=1582, month=12, day=28, hour=0, minute=58)
     spots_count = 90
     seconds_in_section = (mars.orbit_time / 4.0) / spots_count
     times = [mars.aphelion_time + timedelta(seconds=seconds_in_section)*i for i in range(spots_count)]
