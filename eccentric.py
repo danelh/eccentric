@@ -28,9 +28,9 @@ class Eccentric():
         time_diff = time - self.aphelion_time
         time_in_orb = time_diff.total_seconds() % self.orbit_time
         mean_longtitude = self.aphelion + 360.0 * time_in_orb / self.orbit_time
-        fixed_mean_longtitude = self.fix_angle_precession(time, mean_longtitude)
+        fixed_mean_longtitude = self.fix_precession_plus_aphelion_movement(time, mean_longtitude)
         center_angle, planet_angle, distance =self.get_apparent_angle_by_mean_longtitude(fixed_mean_longtitude,
-                                                   self.fix_angle_precession(time, self.fix_aphelion(time)))
+                                                   self.fix_precession_plus_aphelion_movement(time, self.aphelion))
         return MomentInEccentric(time, fixed_mean_longtitude, center_angle, planet_angle, distance)
 
     def get_apparent_angle_by_mean_longtitude(self, mean_longtitude, current_aphelion):
@@ -81,8 +81,12 @@ class Eccentric():
         angle = angle % 360
         return angle
 
-    def fix_angle_precession(self, new_date, angle):
-        return self.fix_angle_by_seconds_a_year(new_date, angle, PRESSESSION_SECONDS_A_YEAR)
+    # def fix_angle_precession(self, new_date, angle):
+    #     return self.fix_angle_by_seconds_a_year(new_date, angle, PRESSESSION_SECONDS_A_YEAR)
+    #
+    # def fix_aphelion(self, new_date):
+    #     return self.fix_angle_by_seconds_a_year(new_date, self.aphelion, self.aphelion_seconds_movement_a_year)
 
-    def fix_aphelion(self, new_date):
-        return self.fix_angle_by_seconds_a_year(new_date, self.aphelion, self.aphelion_seconds_movement_a_year)
+    def fix_precession_plus_aphelion_movement(self, new_date, angle):
+        return self.fix_angle_by_seconds_a_year(new_date, angle,
+                                                self.aphelion_seconds_movement_a_year+PRESSESSION_SECONDS_A_YEAR)
