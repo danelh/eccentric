@@ -10,10 +10,12 @@ from datetime import datetime
 # Accorfing to TBOO 2. p.46 & 83 and observation 1579 Dec it seems
 # the perigee (Earh seen from Sun) is about Cancer 4-5 deg. in about 15 Dec.
 # the apogee seen from the Sun will be Capricon 5 deg.
-earth_aphelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=5)
-aphelion_date = datetime(year=1590, month=6, day=15)
+earth_aphelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=4)
+aphelion_date = datetime(year=1590, month=6, day=15, hour=19, minute=37)
 earth = Eccentric(eccentricity=3584, aequant_eccentricity=0, aphelion=earth_aphelion,
                   apehlion_time=aphelion_date, orbit_time=365.25)
-m = earth.get_moment(datetime(year=1585, month=1, day=30))
-# m = earth.get_moment(datetime(year=1593, month=8, day=25))
+# m = earth.get_moment(datetime(year=1585, month=1, day=30, hour=19, minute=14))
+m = earth.get_moment(datetime(year=1593, month=8, day=25, hour=17, minute=30))
+# m = earth.get_moment(datetime(year=1595, month=10, day=31, hour=0, minute=39))
+
 print (m.distance, m.longtitude, m.mean_longtitude)
