@@ -50,7 +50,7 @@ m2 = mars.get_moment(datetime(year=1604, month=3, day=28, hour=16, minute=23))
 print (m.distance, m.longtitude, m.mean_longtitude)
 print (m.distance, m2.longtitude, m2.mean_longtitude)
 
-def get_expected_latitude(time, radius_ratio=1.519, earth_eccentricity=1792):
+def get_expected_latitude(time, radius_ratio=1.519, earth_eccentricity=1792, mars_ratio=None):
     # original_earth_eccentricity = earth.eccentricity
     earth.eccentricity = earth_eccentricity
     # earth.aequant_eccentricity = original_earth_eccentricity - earth_eccentricity
@@ -58,7 +58,11 @@ def get_expected_latitude(time, radius_ratio=1.519, earth_eccentricity=1792):
 
     mars_latitude_from_sun = get_latitude_of_mars_from_sun_by_date(time)
 
-    # bisicate mars (after latitude):
+    # bisicate mars (after we got latitude from sun):
+    if mars_ratio:
+        total_mars_eccentricity = mars.aequant_eccentricity + mars.eccentricity
+        mars.eccentricity = total_mars_eccentricity * mars_ratio
+        mars.aequant_eccentricity = total_mars_eccentricity - mars.eccentricity
     # semi_mars = (mars.aequant_eccentricity + mars.eccentricity) / 2
     # mars.aequant_eccentricity = semi_mars
     # mars.eccentricity = semi_mars
@@ -88,13 +92,17 @@ def get_latitude_of_mars_from_sun_by_date(time):
 
 
 
-def check_latitude_observations(observation_times, radius_ratio=1.519, earth_eccentricity=1792):
+def check_latitude_observations(observation_times, radius_ratio=1.519, earth_eccentricity=1792,
+                                mars_ratio=None):
     for ob in observations_times:
         # print (get_latitude_of_mars_from_sun_by_date(ob))
-        print (get_expected_latitude(ob, radius_ratio=radius_ratio, earth_eccentricity=earth_eccentricity))
+        print (get_expected_latitude(ob, radius_ratio=radius_ratio, earth_eccentricity=earth_eccentricity,
+                                     mars_ratio=mars_ratio))
 
 observations_times = [datetime(year=1585, month=1, day=30, hour=19, minute=14),
-                      datetime(year=1593, month=8, day=25, hour=17, minute=27)]
+                      datetime(year=1593, month=8, day=25, hour=17, minute=27),
+                      datetime(year=1600, month=1, day=18, hour=14, minute=2),
+                      datetime(year=1591, month=6, day=8, hour=7, minute=43)]
 
 # ratio is eccnetricy/aequant_eccenntricity. in the model the ratio is 0.61
 def shrink_mars_eccentricity(new_eccentricity_ratio):
@@ -102,7 +110,7 @@ def shrink_mars_eccentricity(new_eccentricity_ratio):
     kepler_example_time = datetime(year=1582, month=12, day=28, hour=3, minute=58)
     # kepler_example_time = datetime(year=1593, month=8, day=25, hour=17, minute=27)
     # kepler_example_time = datetime(year=1582, month=12, day=28, hour=0, minute=58)
-    spots_count = 90
+    spots_count = 120
     seconds_in_section = (mars.orbit_time / 4.0) / spots_count
     times = [mars.aphelion_time + timedelta(seconds=seconds_in_section)*i for i in range(spots_count)]
     original_longtitudes = [mars.get_moment(time).longtitude for time in times]
@@ -115,9 +123,12 @@ def shrink_mars_eccentricity(new_eccentricity_ratio):
     diff = [decdeg2dms(abs(new_longtitudes[i]-original_longtitudes[i])) for i in range(spots_count)]
     print (original_longtitudes)
     print (new_longtitudes)
-    print (max(diff))
+    # print (max(diff))
     print (original_kepler_long, new_kepler_long)
+    print ("max diff:{}".format(max(diff)))
+    print ("diff in Kepler example: {}".format(decdeg2dms(new_kepler_long - original_kepler_long)))
 
-check_latitude_observations(observations_times, radius_ratio=1.54, earth_eccentricity=1700)
+check_latitude_observations(observations_times, radius_ratio=1.52, earth_eccentricity=2000,
+                            mars_ratio=0.55)
 
-shrink_mars_eccentricity(0.50)
+# shrink_mars_eccentricity(0.56)
