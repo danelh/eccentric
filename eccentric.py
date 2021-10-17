@@ -34,7 +34,12 @@ class Eccentric():
         return MomentInEccentric(time, fixed_mean_longtitude, center_angle, planet_angle, distance)
 
     def get_apparent_angle_by_mean_longtitude(self, mean_longtitude, current_aphelion):
-        angle_from_aphelion = math.radians(mean_longtitude - current_aphelion)
+        angle_from_aphelion = math.radians((mean_longtitude - current_aphelion) % 360)
+        changed_side = False
+        if math.degrees(angle_from_aphelion) > 180:
+            changed_side = True
+            angle_from_aphelion = math.radians(360) - angle_from_aphelion
+
         # triangle Center-Planter-aequant
         planet_angle = math.asin(math.sin(angle_from_aphelion)*self.aequant_eccentricity/RADIUS)
         # if aequant eccentricity = 0 than the planet angle is 0 - which is good
@@ -43,13 +48,26 @@ class Eccentric():
         center_angle = planet_angle + (math.radians(180)-angle_from_aphelion) # external_angle
         sun_distance = math.sqrt(RADIUS**2+self.eccentricity**2
                                  -2*RADIUS*self.eccentricity*math.cos(center_angle))
-        apparent_angle = math.asin(math.sin(center_angle)*RADIUS/sun_distance)
+        # we are first after the sharp angle, becaue asin(sin(150)) = 30.
+        # so if the apparent angle > 90 we have a problem
+        planet_angle = math.asin(math.sin(center_angle)*self.eccentricity/sun_distance)
+        # apparent_angle = math.asin(math.sin(center_angle)*RADIUS/sun_distance)
+        apparent_angle = math.radians(180) - planet_angle - center_angle
 
         # the real center angle should be 180 - center angle of the tirangle (planet-center_earth)
         # beacue real center angle is aphelion-center-planet
         center_angle = math.radians(180)-center_angle
+
+
+        # this must come before the addition of aphelion
+        if changed_side:
+            center_angle = math.radians(360) - center_angle
+            apparent_angle = math.radians(360) - apparent_angle
+
+
         center_angle = (math.degrees(center_angle) + current_aphelion) % 360
         apparent_angle = (math.degrees(apparent_angle) + current_aphelion) % 360
+
 
         return center_angle, apparent_angle, sun_distance
 
