@@ -110,8 +110,8 @@ def shrink_mars_eccentricity(new_eccentricity_ratio):
     kepler_example_time = datetime(year=1582, month=12, day=28, hour=3, minute=58)
     # kepler_example_time = datetime(year=1593, month=8, day=25, hour=17, minute=27)
     # kepler_example_time = datetime(year=1582, month=12, day=28, hour=0, minute=58)
-    spots_count = 120
-    seconds_in_section = (mars.orbit_time / 4.0) / spots_count
+    spots_count = 1000
+    seconds_in_section = (mars.orbit_time / 1.0) / spots_count
     times = [mars.aphelion_time + timedelta(seconds=seconds_in_section)*i for i in range(spots_count)]
     original_longtitudes = [mars.get_moment(time).longtitude for time in times]
     original_kepler_long = mars.get_moment(kepler_example_time).longtitude
@@ -128,7 +128,25 @@ def shrink_mars_eccentricity(new_eccentricity_ratio):
     print ("max diff:{}".format(max(diff)))
     print ("diff in Kepler example: {}".format(decdeg2dms(new_kepler_long - original_kepler_long)))
 
-check_latitude_observations(observations_times, radius_ratio=1.52, earth_eccentricity=2000,
-                            mars_ratio=0.55)
+def compare_tycho_and_kepler_earth():
+    _earth_aphelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=4)
+    _earth_aphelion_date = datetime(year=1590, month=6, day=15, hour=19, minute=37)
+    tycho = Eccentric(eccentricity=3584, aequant_eccentricity=0, aphelion=_earth_aphelion,
+                      apehlion_time=_earth_aphelion_date, orbit_time=365.25)
+    kepler = Eccentric(eccentricity=3584/2, aequant_eccentricity=3584/2, aphelion=_earth_aphelion,
+                      apehlion_time=_earth_aphelion_date, orbit_time=365.25)
+    spots_count = 1000
+    seconds_in_section = (tycho.orbit_time / 1.0) / spots_count
+    times = [mars.aphelion_time + timedelta(seconds=seconds_in_section) * i for i in range(spots_count)]
 
-# shrink_mars_eccentricity(0.56)
+    tycho_longtitudes = [tycho.get_moment(time).longtitude for time in times]
+    kepler_longtitudes = [kepler.get_moment(time).longtitude for time in times]
+    diff = [decdeg2dms(abs(kepler_longtitudes[i]-tycho_longtitudes[i])) for i in range(spots_count)]
+    print ("max diff:{}".format(max(diff)))
+
+# check_latitude_observations(observations_times, radius_ratio=1.52, earth_eccentricity=2000,
+#                             mars_ratio=0.55)
+
+# shrink_mars_eccentricity(0.50)
+
+compare_tycho_and_kepler_earth()
