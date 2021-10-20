@@ -141,8 +141,14 @@ def compare_tycho_and_kepler_earth():
 
     tycho_longtitudes = [tycho.get_moment(time).longtitude for time in times]
     kepler_longtitudes = [kepler.get_moment(time).longtitude for time in times]
+    tycho_distances = [tycho.get_moment(time).distance for time in times]
+    kepler_distances = [kepler.get_moment(time).distance for time in times]
+
     diff = [decdeg2dms(abs(kepler_longtitudes[i]-tycho_longtitudes[i])) for i in range(spots_count)]
     print ("max diff:{}".format(max(diff)))
+    diff_distance = [abs(kepler_distances[i]-tycho_distances[i]) for i in range(spots_count)]
+    print ("max diff:{}".format(max(diff_distance)))
+
 
 # check_latitude_observations(observations_times, radius_ratio=1.52, earth_eccentricity=2000,
 #                             mars_ratio=0.55)
