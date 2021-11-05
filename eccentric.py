@@ -107,7 +107,9 @@ class Ellipse():
 
     # input in degrees. output in degrees. (not radians)
     def perform_iteration(self, mean_anomaly, current_eccentric_anomaly):
-        return mean_anomaly + self.eccentricity*math.sin(math.radians(current_eccentric_anomaly))
+        # return mean_anomaly + self.eccentricity*math.sin(math.radians(current_eccentric_anomaly))
+        # the formula works in radians - so we should the e*sin convert to degrees
+        return mean_anomaly + math.degrees(self.eccentricity * math.sin(math.radians(current_eccentric_anomaly)))
 
     # http://www.csun.edu/~hcmth017/master/node16.html
     def get_eccentric_anomaly_from_mean_anomaly(self, mean_anomaly):
