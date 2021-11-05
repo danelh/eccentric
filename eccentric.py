@@ -122,7 +122,7 @@ class Ellipse():
         time_in_orb = time_diff.total_seconds() % self.orbit_time
         mean_longtitude = self.aphelion + 360.0 * time_in_orb / self.orbit_time
         fixed_mean_longtitude = self.fix_precession_plus_aphelion_movement(time, mean_longtitude)
-        center_angle, planet_angle, distance =self.get_apparent_angle_by_mean_longtitude(fixed_mean_longtitude,
+        planet_angle, center_angle, distance =self.get_apparent_angle_by_mean_longtitude(fixed_mean_longtitude,
                                                    self.fix_precession_plus_aphelion_movement(time, self.aphelion))
         return MomentInEccentric(time, fixed_mean_longtitude, center_angle, planet_angle, distance)
 
@@ -132,43 +132,15 @@ class Ellipse():
         # first calulcate the Eccentric anomaly:
         eccentric_anomaly = self.get_eccentric_anomaly_from_mean_anomaly(math.degrees(angle_from_aphelion))
 
+        true_anomaly = 2*math.atan(math.tan(math.radians(eccentric_anomaly/2)) * math.sqrt((1+self.eccentricity)/(1-self.eccentricity)))
 
+        distance = self.semi_major_axis*(1-self.eccentricity*math.cos(math.radians(eccentric_anomaly)))
 
-        changed_side = False
-        if math.degrees(angle_from_aphelion) > 180:
-            changed_side = True
-            angle_from_aphelion = math.radians(360) - angle_from_aphelion
+        apparent_angle = (true_anomaly + current_aphelion) % 360
+        center_angle = (eccentric_anomaly + current_aphelion) % 360
 
-        # triangle Center-Planter-aequant
-        planet_angle = math.asin(math.sin(angle_from_aphelion)*self.aequant_eccentricity/RADIUS)
-        # if aequant eccentricity = 0 than the planet angle is 0 - which is good
+        return apparent_angle, center_angle, distance
 
-        #triangle Sun-Center-planet
-        center_angle = planet_angle + (math.radians(180)-angle_from_aphelion) # external_angle
-        sun_distance = math.sqrt(RADIUS**2+self.eccentricity**2
-                                 -2*RADIUS*self.eccentricity*math.cos(center_angle))
-        # we are first after the sharp angle, becaue asin(sin(150)) = 30.
-        # so if the apparent angle > 90 we have a problem
-        planet_angle = math.asin(math.sin(center_angle)*self.eccentricity/sun_distance)
-        # apparent_angle = math.asin(math.sin(center_angle)*RADIUS/sun_distance)
-        apparent_angle = math.radians(180) - planet_angle - center_angle
-
-        # the real center angle should be 180 - center angle of the tirangle (planet-center_earth)
-        # beacue real center angle is aphelion-center-planet
-        center_angle = math.radians(180)-center_angle
-
-
-        # this must come before the addition of aphelion
-        if changed_side:
-            center_angle = math.radians(360) - center_angle
-            apparent_angle = math.radians(360) - apparent_angle
-
-
-        center_angle = (math.degrees(center_angle) + current_aphelion) % 360
-        apparent_angle = (math.degrees(apparent_angle) + current_aphelion) % 360
-
-
-        return center_angle, apparent_angle, sun_distance
 
 
 
