@@ -129,12 +129,16 @@ def shrink_mars_eccentricity(new_eccentricity_ratio):
     print ("diff in Kepler example: {}".format(decdeg2dms(new_kepler_long - original_kepler_long)))
 
 def compare_tycho_and_kepler_earth():
+    _ecc = 3584
     _earth_aphelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=4)
     _earth_aphelion_date = datetime(year=1590, month=6, day=15, hour=19, minute=37)
-    tycho = Eccentric(eccentricity=3584, aequant_eccentricity=0, aphelion=_earth_aphelion,
+    tycho = Eccentric(eccentricity=_ecc, aequant_eccentricity=0, aphelion=_earth_aphelion,
                       apehlion_time=_earth_aphelion_date, orbit_time=365.25)
-    kepler = Eccentric(eccentricity=3584/2, aequant_eccentricity=3584/2, aphelion=_earth_aphelion,
+    kepler = Eccentric(eccentricity=_ecc/2, aequant_eccentricity=_ecc/2, aphelion=_earth_aphelion,
                       apehlion_time=_earth_aphelion_date, orbit_time=365.25)
+    # kepler = Eccentric(eccentricity=1670, aequant_eccentricity=1670, aphelion=_earth_aphelion,
+    #                   apehlion_time=_earth_aphelion_date, orbit_time=365.25)
+
     spots_count = 1000
     seconds_in_section = (tycho.orbit_time / 1.0) / spots_count
     times = [mars.aphelion_time + timedelta(seconds=seconds_in_section) * i for i in range(spots_count)]
@@ -149,10 +153,21 @@ def compare_tycho_and_kepler_earth():
     diff_distance = [abs(kepler_distances[i]-tycho_distances[i]) for i in range(spots_count)]
     print ("max diff:{}".format(max(diff_distance)))
 
+    # what happens in 90 deg mean longtitude?
+    test_time = timedelta(days=138*365.25/360) + _earth_aphelion_date
+    kepler_test_moment = kepler.get_moment(test_time)
+    tycho_test_moment = tycho.get_moment(test_time)
+    print (kepler_test_moment.mean_longtitude - _earth_aphelion, tycho_test_moment.mean_longtitude)
+    print(kepler_test_moment.longtitude, tycho_test_moment.longtitude)
+    print (decdeg2dms(abs(kepler_test_moment.longtitude - tycho_test_moment.longtitude)))
 
 # check_latitude_observations(observations_times, radius_ratio=1.52, earth_eccentricity=2000,
 #                             mars_ratio=0.55)
 
 # shrink_mars_eccentricity(0.50)
 
+
+m = earth.get_moment(datetime(year=1590, month=3, day=5, hour=7, minute=10))
+print(m.longtitude, m.mean_longtitude)
 compare_tycho_and_kepler_earth()
+
