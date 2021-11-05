@@ -1,7 +1,7 @@
 import math
 
 from angles import Angle, Zodiac
-from eccentric import Eccentric
+from eccentric import Eccentric, Ellipse
 from datetime import datetime, timedelta
 
 MARS_ANGLE = 1.83333333
@@ -166,8 +166,16 @@ def compare_tycho_and_kepler_earth():
 
 # shrink_mars_eccentricity(0.50)
 
+def check_ellipse():
+    p_phelion = Angle.from_zondiac_to_number(Zodiac.CAPRICON, deg=4)
+    p_phelion_date = datetime(year=1590, month=6, day=15, hour=19, minute=37)
+    p = Ellipse(eccentricity=0.02, semi_major_axis=1, phelion=p_phelion,
+                pehlion_time=p_phelion_date, orbit_time=365.25)
+    times = [p_phelion_date + timedelta(days=1) * i for i in range(365)]
 
-m = earth.get_moment(datetime(year=1590, month=3, day=5, hour=7, minute=10))
-print(m.longtitude, m.mean_longtitude)
-compare_tycho_and_kepler_earth()
+    for time in times:
+        moment = p.get_moment(time)
+        print (moment.mean_longtitude, moment.longtitude, moment.longtitude-moment.mean_longtitude)
 
+
+check_ellipse()

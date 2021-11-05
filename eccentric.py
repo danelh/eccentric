@@ -91,14 +91,15 @@ class Eccentric():
         return self.fix_angle_by_seconds_a_year(new_date, angle,
                                                 self.aphelion_seconds_movement_a_year+PRESSESSION_SECONDS_A_YEAR)
 
+# ellipse formula using pehilion and not apehilion.
 class Ellipse():
-    def __init__(self, semi_major_axis, eccentricity, aphelion, apehlion_time, orbit_time, aphelion_seconds_movement_a_year=0):
+    def __init__(self, semi_major_axis, eccentricity, phelion, pehlion_time, orbit_time, phelion_seconds_movement_a_year=0):
         self.semi_major_axis = semi_major_axis
         self.eccentricity = eccentricity
-        self.aphelion = aphelion
-        self.aphelion_time = apehlion_time
+        self.phelion = phelion
+        self.phelion_time = pehlion_time
         self.orbit_time = orbit_time * SECONDS_IN_DAY
-        self.aphelion_seconds_movement_a_year = aphelion_seconds_movement_a_year
+        self.phelion_seconds_movement_a_year = phelion_seconds_movement_a_year
 
     # input in degrees. output in degrees. (not radians)
     def get_mean_anomaly_from_eccentric_anomaly(self, eccentric_anomaly):
@@ -108,36 +109,40 @@ class Ellipse():
     def perform_iteration(self, mean_anomaly, current_eccentric_anomaly):
         return mean_anomaly + self.eccentricity*math.sin(math.radians(current_eccentric_anomaly))
 
+    # http://www.csun.edu/~hcmth017/master/node16.html
     def get_eccentric_anomaly_from_mean_anomaly(self, mean_anomaly):
         tolerance = 0.01
         current_eccentric_anomaly = mean_anomaly
         diff = 1000
         while diff > tolerance:
+            old_eccentric_anomaly = current_eccentric_anomaly
             current_eccentric_anomaly = self.perform_iteration(mean_anomaly, current_eccentric_anomaly)
+            diff = abs(current_eccentric_anomaly - old_eccentric_anomaly)
 
         return current_eccentric_anomaly
 
     def get_moment(self, time):
-        time_diff = time - self.aphelion_time
+        time_diff = time - self.phelion_time
         time_in_orb = time_diff.total_seconds() % self.orbit_time
-        mean_longtitude = self.aphelion + 360.0 * time_in_orb / self.orbit_time
-        fixed_mean_longtitude = self.fix_precession_plus_aphelion_movement(time, mean_longtitude)
+        mean_longtitude = self.phelion + 360.0 * time_in_orb / self.orbit_time
+        fixed_mean_longtitude = self.fix_precession_plus_phelion_movement(time, mean_longtitude)
         planet_angle, center_angle, distance =self.get_apparent_angle_by_mean_longtitude(fixed_mean_longtitude,
-                                                   self.fix_precession_plus_aphelion_movement(time, self.aphelion))
+                                                                                         self.fix_precession_plus_phelion_movement(time, self.phelion))
         return MomentInEccentric(time, fixed_mean_longtitude, center_angle, planet_angle, distance)
 
-    def get_apparent_angle_by_mean_longtitude(self, mean_longtitude, current_aphelion):
-        angle_from_aphelion = math.radians((mean_longtitude - current_aphelion) % 360)
+    def get_apparent_angle_by_mean_longtitude(self, mean_longtitude, current_phelion):
+        angle_from_phelion = math.radians((mean_longtitude - current_phelion) % 360)
 
         # first calulcate the Eccentric anomaly:
-        eccentric_anomaly = self.get_eccentric_anomaly_from_mean_anomaly(math.degrees(angle_from_aphelion))
+        eccentric_anomaly = self.get_eccentric_anomaly_from_mean_anomaly(math.degrees(angle_from_phelion))
 
         true_anomaly = 2*math.atan(math.tan(math.radians(eccentric_anomaly/2)) * math.sqrt((1+self.eccentricity)/(1-self.eccentricity)))
+        true_anomaly = math.degrees(true_anomaly)
 
         distance = self.semi_major_axis*(1-self.eccentricity*math.cos(math.radians(eccentric_anomaly)))
 
-        apparent_angle = (true_anomaly + current_aphelion) % 360
-        center_angle = (eccentric_anomaly + current_aphelion) % 360
+        apparent_angle = (true_anomaly + current_phelion) % 360
+        center_angle = (eccentric_anomaly + current_phelion) % 360
 
         return apparent_angle, center_angle, distance
 
@@ -146,13 +151,13 @@ class Ellipse():
 
 
     def fix_angle_by_seconds_a_year(self, new_date, angle, seconds_fix):
-        time_diff = (new_date - self.aphelion_time).total_seconds()
+        time_diff = (new_date - self.phelion_time).total_seconds()
         years_diff = time_diff / (SECONDS_IN_DAY*365.25)
         angle += years_diff * (seconds_fix / 3600.0)
         angle = angle % 360
         return angle
 
-    def fix_precession_plus_aphelion_movement(self, new_date, angle):
+    def fix_precession_plus_phelion_movement(self, new_date, angle):
         return self.fix_angle_by_seconds_a_year(new_date, angle,
-                                                self.aphelion_seconds_movement_a_year+PRESSESSION_SECONDS_A_YEAR)
+                                                self.phelion_seconds_movement_a_year + PRESSESSION_SECONDS_A_YEAR)
 
